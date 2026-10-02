@@ -352,7 +352,11 @@ tonevis/
   takes.py      the "Record your own takes" window
 demo/           the test recordings, make_test_wavs.py, run_demo.py, DEMO_SCRIPT.md
 tools/          tension_bakeoff.py (why spectral tilt), voice_effects.py (test-material edits),
-                dashboard_screenshots.py (remakes the dashboard pictures in docs/img)
+                dashboard_screenshots.py (remakes the dashboard pictures in docs/img),
+                record_clips.py and make_cards.py (the video's screen clips and cards;
+                make_video_bits.bat runs both)
+video/          SHOOT_SHEET.md (who films what), the cards, the caption files; clips/ is made
+                by make_video_bits.bat and not kept in git
 tests/          pytest tests on synthetic signals, including pixel checks of every mapping
 docs/img/       pictures used in this README
 BUILD_LOG.md    dated design decisions, for the design portfolio

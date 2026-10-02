@@ -603,3 +603,55 @@ A web version of the *display*, fed by the same analysis, is a reasonable later 
 - **Access to Vikram,** or any deaf or hard-of-hearing person, before filming or before Stage 2.
 - **Who films and who acts,** and the consent rules for team members under 18.
 - **Mac test.**
+
+## 2026-10-02 (session 5): GitHub, and the video's ready-made parts
+
+### What and why
+The team needs the code somewhere they can all reach it, and the video due on 23 Oct had a plan
+but nothing made yet. Most of the video is the app's own screen, and that part can be made
+without a camera, OBS or anyone at the laptop. Only the people (the face, the role-play, the
+narration) need filming.
+
+- **Git and GitHub.** The folder is now a git repository, public on GitHub. `.gitattributes`
+  keeps the Mac `.command` launchers at Unix line endings, because bash refuses Windows ones.
+  Real voices (`demo/takes/`) and the generated clips stay out of git.
+- **`tools/record_clips.py`** (or `make_video_bits.bat`) records the app's own scenes to MP4: the demo
+  on the Live tab, the corner view, the Compare tab and a scroll through How it works.
+  - It runs the real dashboard, with the real analysis, off-screen and silent.
+  - The sound in each clip is exactly what the app analysed, so picture and sound match.
+  - It draws at 150% scaling (a 1280 × 720 window filmed as 1920 × 1080) so the text is
+    readable in a video.
+  - With real takes in `demo/takes`, the Compare clip uses them.
+- **`tools/make_cards.py`** makes the title, "Captions give the words. Not the voice.",
+  evidence and end cards, plus see-through labels ("long pause", "quieter"...). It uses the
+  app's colours and font. Missing test results show as `__ of __` in amber, so they can't be
+  forgotten.
+- **Captions:** `video/captions_narration.srt` (all the narration, timed to the plan's scene
+  slots) and `video/captions_roleplay.srt` (the role-play lines, to be retimed).
+- **`video/SHOOT_SHEET.md`:** one page covering who does what, what is already made, what still
+  needs filming, and the checklist.
+
+### Rejected alternatives
+- **Filming the screen with OBS for every scene.** This needs a person at the laptop, it can
+  catch notifications, and it has to be redone by hand whenever the app changes. OBS is still
+  the plan for the live role-play and the review, because those need a real microphone.
+- **Grabbing frames in real time.** Grabbing a whole 1080p window, with the corner view as
+  well, only managed 11 new frames a second, so the line looked jerky. Instead the app runs in
+  slow motion while it is filmed: `time.perf_counter` is replaced by a clock running at a third
+  of the speed, and the silent file player waits on the same clock. That gives 27 to 29 new
+  frames a second in clips that play at normal speed. Analysis, calibration and drawing are
+  unchanged; only the wall clock they read is slowed.
+- **Upscaling a 1920 × 1080 window.** The text came out too small to read in a video, and
+  upscaling a smaller window blurs it. Qt's own scaling (`QT_SCALE_FACTOR=1.5`) draws sharp text
+  at the larger size.
+
+### Checked
+- 122 tests pass before the commit.
+- Stills from each clip: the Start card, then the grey line, then white after calibration, pauses
+  shaded, amber in take C. At 50 s into the demo clip the session chip reads 0:47, which matches
+  the 3-second lead-in, so the sound lines up with the picture.
+
+### Open
+- The real takes, the tests with people, consent, and who does each job are still not done or
+  decided. `video/SHOOT_SHEET.md` has a table for the names.
+- The team name and the test results, for the cards.

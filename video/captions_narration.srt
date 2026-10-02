@@ -1,0 +1,226 @@
+1
+00:00:01,000 --> 00:00:03,256
+I'm fine...
+
+2
+00:00:03,306 --> 00:00:07,450
+Work's been... fine.
+
+3
+00:00:13,000 --> 00:00:19,911
+For Vikram, a deaf psychology student,
+every client sounds like this.
+
+4
+00:00:19,961 --> 00:00:24,450
+The words arrive. How they were said
+doesn't.
+
+5
+00:00:25,500 --> 00:00:29,333
+Vikram lip-reads and uses Indian Sign
+Language.
+
+6
+00:00:29,383 --> 00:00:31,977
+Captions can give him the words.
+
+7
+00:00:32,027 --> 00:00:38,091
+But trainee psychologists are also taught
+to notice how something is said:
+
+8
+00:00:38,141 --> 00:00:42,966
+a pause before an answer, a voice that
+goes quiet or tight.
+
+9
+00:00:43,016 --> 00:00:45,444
+That channel is closed to him.
+
+10
+00:00:45,494 --> 00:00:52,384
+His challenge asked for a tool that shows
+vocal tone in real time, during supervised
+
+11
+00:00:52,434 --> 00:00:53,128
+practice.
+
+12
+00:00:53,178 --> 00:00:54,450
+So we built one.
+
+13
+00:00:55,500 --> 00:01:01,901
+It shows five things about a voice: pitch,
+loudness, pauses, pace and voice quality.
+
+14
+00:01:01,951 --> 00:01:06,126
+It always compares a person with their own
+usual voice,
+
+15
+00:01:06,176 --> 00:01:09,505
+which it learns in the first twenty
+seconds,
+
+16
+00:01:09,555 --> 00:01:13,422
+so a naturally quiet or deep voice isn't a
+finding.
+
+17
+00:01:13,472 --> 00:01:15,419
+It never names an emotion.
+
+18
+00:01:15,469 --> 00:01:19,950
+It shows the evidence, and the judgement
+stays with Vikram.
+
+19
+00:01:41,000 --> 00:01:47,572
+Take A: the line stays around her usual
+middle, white, with even syllable ticks.
+
+20
+00:01:47,622 --> 00:01:54,607
+Take B: these shaded columns are pauses of
+more than a second, darker the longer they
+
+21
+00:01:54,657 --> 00:01:55,021
+last.
+
+22
+00:01:55,071 --> 00:01:58,580
+The line sits higher and rises at the
+ends.
+
+23
+00:01:58,630 --> 00:02:02,636
+Take C: a thick, bright line, which means
+louder.
+
+24
+00:02:02,686 --> 00:02:08,678
+The ticks are packed together and the pace
+bar is up, which means faster.
+
+25
+00:02:08,728 --> 00:02:12,982
+And amber: her voice is more pressed than
+her usual.
+
+26
+00:02:13,032 --> 00:02:19,107
+Take D: thin, dim and hugging the middle,
+which means quieter and flatter.
+
+27
+00:02:19,157 --> 00:02:21,673
+And blue: softer and breathier.
+
+28
+00:02:21,723 --> 00:02:24,487
+Same words, four different voices.
+
+29
+00:02:24,537 --> 00:02:29,950
+The app doesn't say what any of them
+means. It shows what changed.
+
+30
+00:03:36,000 --> 00:03:40,659
+Afterwards, the supervisor and Vikram look
+back together.
+
+31
+00:03:40,709 --> 00:03:45,367
+The app lists where the voice stayed away
+from its usual:
+
+32
+00:03:45,417 --> 00:03:51,893
+here, a long pause and a quieter, flatter
+answer, just after the question about
+
+33
+00:03:51,943 --> 00:03:52,307
+home.
+
+34
+00:03:52,357 --> 00:03:55,693
+It describes the voice, never the person.
+
+35
+00:03:55,743 --> 00:04:00,733
+Deciding what that means, and whether to
+gently ask about it,
+
+36
+00:04:00,783 --> 00:04:04,450
+is Vikram's job, the same as for any
+trainee.
+
+37
+00:04:05,500 --> 00:04:10,027
+It's made to be read from the corner of
+the eye while lip-reading:
+
+38
+00:04:10,077 --> 00:04:15,435
+shape, thickness, brightness and colour,
+with no text and no numbers while you
+
+39
+00:04:15,485 --> 00:04:15,851
+watch.
+
+40
+00:04:15,901 --> 00:04:19,180
+Every rule is 'more is up, thicker or
+brighter'.
+
+41
+00:04:19,230 --> 00:04:24,450
+Blue and amber stay distinct for colour-
+blind viewers, and nothing flashes.
+
+42
+00:04:25,500 --> 00:04:30,692
+It has limits, and we show them. Two
+people talking at once get mixed together.
+
+43
+00:04:30,742 --> 00:04:34,275
+A voice through a small speaker looks
+falsely pressed.
+
+44
+00:04:34,325 --> 00:04:36,265
+Whispers have no pitch at all.
+
+45
+00:04:36,315 --> 00:04:39,450
+Knowing where it fails is part of using it
+well.
+
+46
+00:04:40,500 --> 00:04:44,685
+It runs on an ordinary laptop, offline,
+and saves no sound.
+
+47
+00:04:44,735 --> 00:04:50,356
+Next, in Stage 2, we want to test it with
+Vikram in real supervised role-plays,
+
+48
+00:04:50,406 --> 00:04:54,950
+and add a second microphone so it shows
+only the client's voice.
+

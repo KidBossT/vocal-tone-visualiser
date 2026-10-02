@@ -7,3 +7,5 @@ recordings/
 demo/takes/
 # Each computer's own display choices.
 settings.ini
+# Made by make_video_bits.bat (large, and remade whenever needed).
+video/clips/
