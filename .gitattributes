@@ -1,0 +1,9 @@
+* text=auto
+# Mac launchers must keep Unix line endings or bash refuses them.
+*.command text eol=lf
+*.sh text eol=lf
+# Windows launchers.
+*.bat text eol=crlf
+*.wav binary
+*.png binary
+*.mp4 binary

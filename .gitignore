@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+recordings/
+# Real people's voices: share these on purpose, never by accident.
+demo/takes/
+# Each computer's own display choices.
+settings.ini
