@@ -110,6 +110,8 @@ CHANGE_LONG_PAUSE = 3.0            # s: pauses this long are listed on their own
 
 # ---- Display ---------------------------------------------------------------------------------
 HISTORY_SECONDS = 10.0    # the window shows the last 10 s; newest sound at the right edge
+MAX_PX_PER_SEMITONE = 16.0  # px: on a big display, one semitone is never taller than this,
+                          # so a syllable reads as a curve, not a tall vertical scribble
 SEMITONE_RANGE = 10.0     # semitones from the centre line to the top (and to the bottom) edge.
                           # Everyday speech moves about 2-6 semitones either side of its middle.
 REFERENCE_SECONDS = 20.0  # before calibration finishes, the centre line is the median pitch of
@@ -120,13 +122,16 @@ WINDOW_SIZE = (400, 250)  # starting size; the window is resizable
 MIN_WINDOW_SIZE = (300, 190)
 RIBBON_WIDTH = (2.5, 13.0)        # px: line thickness at the quiet and the loud end
 RIBBON_BRIGHTNESS = (0.5, 1.0)    # line brightness at the quiet and the loud end
-BRIDGE_WIDTH = 1.5        # px: the thin join across short unvoiced gaps
+BRIDGE_WIDTH = 2.5        # px: the join across short unvoiced gaps, so a phrase reads as
+                          # one line and only real pauses show as gaps
 GLOW_EXTRA = 6.0          # px: soft glow drawn behind the line
-NOW_DOT_RADIUS = 4.5      # px; the dot marking the newest voiced sound
+NOW_DOT_RADIUS = 6.0      # px; the dot marking the newest voiced sound
 NOW_DOT_MAX_AGE = 0.25    # s; the dot shows only while the voiced sound is this recent
 PACE_BAR_WIDTH = 10.0     # px
 RHYTHM_LANE = 10.0        # px: height of the syllable-tick lane under the line
 FADE_FRACTION = 0.12      # the oldest 12% of the window fades into the background
+LINE_SMOOTHING = 0.10     # s: the pitch line is averaged over about this long, so it reads as
+                          # a smooth curve rather than a jittery scribble
 
 # Colours (dark theme). The tension colours are blue and amber: they stay distinct for the
 # common kinds of colour blindness, and there is deliberately no red.
@@ -138,7 +143,7 @@ WARM = "#FFB24A"                           # relatively more high-frequency ener
 COOL = "#5EA8FF"                           # relatively less (soft, breathy)
 CALIBRATING_LINE = "#9AA3B2"               # the line is grey until calibration finishes
 OFF_SCALE_MARK = "#5C6678"                 # faint mark at the edge where pitch left the scale
-PAUSE_FILL = (255, 255, 255, (16, 28, 42))  # RGB + alpha at each PAUSE_STEPS level
+PAUSE_FILL = (255, 255, 255, (12, 22, 34))  # RGB + alpha at each PAUSE_STEPS level
 RHYTHM_TICK = "#8E99AC"
 PACE_TRACK = "#1B212B"
 PACE_FILL = "#CDD5E3"

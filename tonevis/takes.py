@@ -26,7 +26,7 @@ from .session import Timeline
 SENTENCE = "I've been sleeping better, and work has been fine this week."
 
 TAKES = (
-    ("baseline", "Baseline", "About 30 seconds of their ordinary talk: their week, travel, food, "
+    ("baseline", "Usual voice", "About 30 seconds of their ordinary talk: their week, travel, food, "
                              "the weekend. Everything else is compared with this."),
     ("a", "A", "The sentence, even and steady."),
     ("b", "B", "The sentence slowly, with long pauses (count to two in your head); let the ends "
@@ -63,8 +63,8 @@ class TakeRecorder(QDialog):
         v.setSpacing(10)
         v.addWidget(T.label("Record your own takes", "pageTitle"))
         v.addWidget(T.label(
-            "One person, one microphone about 50 cm away, a quiet room. Record the baseline "
-            "first: the app learns the voice from it, then shows each take against it. For A to "
+            "One person, one microphone about 50 cm away, a quiet room. Record their usual "
+            "voice first: the app learns the voice from it, then shows each take against it. For A to "
             f"D the person says: “{SENTENCE}”", "pageText", wrap=True))
 
         mic_row = QHBoxLayout()

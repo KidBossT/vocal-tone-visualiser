@@ -209,7 +209,7 @@ def hold(app, clips: list[Clip], seconds: float, start: float = 0.0) -> float:
 
 
 def new_dashboard() -> Dashboard:
-    d = Dashboard(calibration_seconds=15.0, live_seconds=15.0,
+    d = Dashboard(calibration_seconds=15.0, live_seconds=10.0,
                   settings_path=os.path.join(ROOT, "video", "clips", "_clips_settings.ini"))
     d.confirm_close = False
     d.setMinimumSize(0, 0)

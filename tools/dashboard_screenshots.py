@@ -71,7 +71,7 @@ def main() -> int:
         widget.grab().save(path)
         print("wrote", os.path.relpath(path, ROOT))
 
-    d = Dashboard(calibration_seconds=15.0, live_seconds=15.0)
+    d = Dashboard(calibration_seconds=15.0, live_seconds=10.0)
     d.confirm_close = False
     d.resize(1440, 900)
     d.show()

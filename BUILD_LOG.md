@@ -655,3 +655,83 @@ narration) need filming.
 - The real takes, the tests with people, consent, and who does each job are still not done or
   decided. `video/SHOOT_SHEET.md` has a table for the names.
 - The team name and the test results, for the cards.
+
+
+## 2026-10-10 (session 6): a walk-and-talk video script, and one clean screen
+
+### The video
+The team changed the format. Instead of a narrated screen recording, three presenters walk and
+talk around school, straight to a phone camera, with the app recordings and labels laid on top in
+the edit.
+- **The script, shot list and filming notes** are in a shared Claude Doc, *Tone Visualiser: Stage
+  1 video script*. It has ten scenes and about 600 words, so about 4 min 45 s.
+- **Re-read the competition pages** (5 Oct update):
+  - Stage 1 is a video explaining a conceptual design, judged by an expert panel, due Fri 23 Oct.
+  - The site stresses co-design ("with disabled people, not for them"). So the script says plainly
+    that the next step is to test it with Vikram and change it based on what he says.
+  - The official length and format limits are not on the public pages (they may be behind the
+    registered-user login). The doc asks the team to check.
+- **Vikram's own words** from the Q&A, about clinical training relying on "verbal, tonal and
+  auditory cues", anchor the barrier scene.
+
+### Why the app felt hard to use
+The user said it was "very difficult and weird to use", and the worst part was clutter. Looking at
+the Live tab with fresh eyes showed:
+- **The same voice drawn three times** (the display, the last minute per signal, the whole
+  session), beside a 9-row key, a marks panel, 5 tabs, 9 buttons and 3 status chips.
+- **Jargon:** baseline, recalibrate, freeze, corner view.
+- **Twenty silent seconds after Start.** The app was learning the voice, but only a 12-pixel ring
+  and the word "calibrating…" said so.
+- **The line looked like scribbles on a big screen.** With 10 semitones filling half of a
+  700-pixel plot, one semitone was about 34 px tall, while a syllable was only about 14 px wide
+  (15 s across). Ordinary pitch movement inside a syllable became a tall vertical stroke.
+
+### What changed
+- **One clean Live screen:**
+  - Start, the microphone and its level, then **Learn voice again**, **Mark** and **Mini window**.
+  - Everything else is in one **More** menu: the demo, sound files, sessions, pause, the key, and
+    the details.
+  - The per-signal rows and the whole-session strip are now opt-in "details" (More, or Settings).
+  - The key is cut to the five rows a first-time viewer needs. The full nine are in Help.
+  - The marks panel appears only once there is a mark.
+- **Three steps above the display:** *1 Start listening*, *2 Learning their usual voice… 40%*,
+  *3 Watch how their voice changes*. The current step is outlined. While the voice is still being
+  learned, a banner on the display says "keep talking normally", with a bar that fills.
+- **Plain words:**
+  - Review → **Look back**, Setup → **Settings**.
+  - Recalibrate → **Learn voice again**, Freeze → **Pause the picture**, Corner view → **Mini
+    window**.
+  - Baseline → **usual voice** in the interface. "Baseline" stays in the code and in the
+    glossary.
+  - Help and Settings became icon tabs.
+  - Every message, the Help page, the README and the command-line hints were updated to match.
+- **An easier line** (main view only, so the mini window and the tests' views are unchanged):
+  - At most 16 px per semitone (`MAX_PX_PER_SEMITONE`).
+  - 10 s across instead of 15, so syllables are wider.
+  - Smoothing over about 0.1 s (`LINE_SMOOTHING`) instead of a 3-point average.
+  - Brighter, thicker joins inside phrases, so a phrase reads as one line.
+  - A bigger "now" dot.
+  - "↑ higher than usual / ↓ lower than usual" written beside the middle line.
+  - Slightly lighter pause shading.
+
+### Rejected alternatives
+- **Hiding Look back and Compare behind a "simple mode" switch.** Two modes means two sets of
+  instructions in the README and the video. One clean default, with opt-in details, is simpler.
+- **Removing the per-signal rows altogether.** Supervisors may want them. They are kept, but off by
+  default.
+- **Words on the display, such as "louder" or "pause".** The brief says the live view is read from
+  the corner of the eye, with no text while watching. The only words added are the two fixed axis
+  labels and the temporary learning banner.
+
+### Checked
+- 129 tests pass (7 new: the clean default screen, the steps, the marks card, plain words, the
+  capped scale, smoothing very short runs, the banner and axis words).
+- Screenshots off-screen of the start, the learning state and a calibrated session: the line reads
+  as curves rather than vertical scribbles.
+- The classic `--file` window, `run_demo.py` and the README pictures (`tools/dashboard_screenshots.py`)
+  were re-run. The video clips were re-recorded with the new screen.
+
+### Open
+- Someone who has not seen it before should try the new screen. The user's own verdict decides
+  whether it is "easy" now.
+- The official video length and format, from the registered-user area.

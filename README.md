@@ -49,44 +49,47 @@ a fast, loud, pressed delivery (thick amber line, ticks packed together).*
 
 **First time?** Double-click `run.bat`, then press **Try the demo recording** in the middle of
 the window. A synthetic voice talks normally for about 25 seconds (the app learns it), then says
-one sentence four different ways. Everything on screen is explained in the key on the right, and
-the **How it works** tab explains the rest.
+one sentence four different ways. The key on the right explains the display, and **Help** (the
+book icon, or F1) explains the rest.
 
 ![What you see when the app opens](docs/img/dashboard_start.png)
 
 ## 3. The dashboard, tab by tab
 
 ### Live: watch a voice as it happens
-- **Start listening** uses the microphone chosen next to it. The small bar shows the microphone
-  level. The app remembers your microphone for next time.
-- **The big display** is described in section 4. Hover the mouse over any part of it for a
-  one-line explanation.
-- **How to read it** (on the right) is the key: a tiny drawing of each part of the display and
-  what it means. Press **H** (or the **Key** button) to hide it and give the display more room.
-- **The last minute, one signal per row**: pitch, loudness, pace and voice quality each on
-  their own row. The middle line is this person's usual. Shaded columns are pauses. Dashed lines
-  are your marks.
-- **Whole session**: the whole conversation so far in one strip. Click anywhere on it to look
-  back at that moment in Review.
-- **Marks**: press **M** to mark a moment you want to come back to. Press **N** to mark it and
-  type a short note, then Enter.
-- **Recalibrate** makes the app learn a new speaker (section 5). **Freeze** (Space) stops the
-  picture so you can talk it through. **Corner view** opens the small window (below).
-- **Recordings** lets you try the demo or play any sound file through the display.
-  **Session** starts a new session, or saves or opens one.
+One clean screen. Along the top: **Start listening**, the microphone, its level bar, then
+**Learn voice again**, **Mark** and **Mini window**. Everything else is under **More**.
 
-### The corner view: for use during a session
+- **The three steps** under the buttons say what is happening: *1 Start listening*, *2 Learning
+  their usual voice* (with how far it has got), *3 Watch how their voice changes*. The current step
+  is outlined.
+- **The big display** is described in section 4. While the app is still learning the voice, a
+  banner on the display says so and fills up. Hover the mouse over any part of the display for a
+  one-line explanation.
+- **How to read it** (on the right) is a short key: the five things you need. The full key is in
+  Help. Press **H** to hide it and give the display more room.
+- **Learn voice again** makes the app learn a new speaker (section 5). **Mark** (or **M**) marks a
+  moment to come back to; **N** marks it and lets you type a note. Your marks appear on the right
+  once there is one.
+- **Mini window** opens the small always-on-top window (below).
+- **More** has: the demo recording, playing a sound file, new / save / open session, looking back
+  at this session, pausing the picture (Space), the key on or off, and **Show each signal on its
+  own row**, which adds the last minute of each signal on its own row and the whole session in
+  one strip, under the display. That is off unless you choose it, because one display is easier
+  to read.
+
+### The mini window: for use during a session
 The small always-on-top window, meant to sit in the corner of the screen and be read from the
 corner of the eye while watching the client's face. It shows the same display as the Live tab.
 
-![The corner view](docs/img/corner_view.png)
+![The mini window](docs/img/corner_view.png)
 
-Keys (click the window first): **Space** freeze, **M** mark, **R** recalibrate, **T** always on top
-on or off, **H** legend, **Esc** hide. Drag its edges to resize it; it stays readable down to
-about 400 × 250 pixels.
+Keys (click the window first): **Space** pause, **M** mark, **R** learn voice again, **T** always
+on top on or off, **H** legend, **Esc** hide. Drag its edges to resize it; it stays readable down
+to about 400 × 250 pixels.
 
-### Review: look back over a session
-![The Review tab](docs/img/dashboard_review.png)
+### Look back: the whole session afterwards
+![The Look back tab](docs/img/dashboard_review.png)
 
 - **The session map** shows the whole session, one row per signal. Bars above the middle line
   mean more than their usual (higher, louder, faster, more pressed); below means less.
@@ -99,37 +102,38 @@ about 400 × 250 pixels.
 - **Marks and notes**: double-click a mark to write or change its note.
 - **Show numbers** adds the measurements to the words (for example "+3.0 semitones"). It is off
   unless you tick it. The live display never shows numbers.
-- **Analyse a recording** reviews a sound file without playing it (try
+- **Analyse a recording** looks back over a sound file without playing it (try
   `demo\wavs\session_demo.wav`). **Save** keeps the session as a `.tonevis` file (numbers only,
   never sound); **Open** brings one back. **Export** saves a text summary for supervision notes,
   or a picture of the page.
 
 ### Compare: the same words, spoken different ways
-Up to four recordings side by side, each measured against one baseline recording of the same
-person, on one shared time scale. **Use the demo recordings** fills in the synthetic takes;
+Up to four recordings side by side, each compared with a recording of the same person's usual
+voice, on one shared time scale. **Use the demo recordings** fills in the synthetic takes;
 **Play with sound** fills each panel in while it plays. See section 8 for recording your own.
 
 ![The Compare tab](docs/img/dashboard_compare.png)
 
-### How it works
+### Help (the book icon)
 Everything in this README's sections 4 to 9, inside the app, with pictures drawn by the app
 itself: how to read each part of the display, a session from start to finish, a checklist for
 reading a change, the keys, privacy, the limits, and the words used. **F1** opens it.
 
-### Setup
-Microphone and level check; how many seconds of speech calibration uses; saving, loading or
-learning a baseline; how many seconds the displays show; whether the key and the numbers are
-shown; and the privacy options. Choices are remembered between runs.
+### Settings (the sliders icon)
+Microphone and level check; how many seconds of speech it learns the usual voice from; saving,
+loading or learning a usual voice from a recording; how many seconds the displays show; whether
+the key, the signal rows and the numbers are shown; and the privacy options. Choices are
+remembered between runs.
 
 ### Keys in the dashboard
 
 | Key | What it does |
 |---|---|
-| **Space** | Freeze the live picture; press again to go live |
+| **Space** | Pause the live picture; press again to go live |
 | **M** | Mark this moment |
 | **N** | Mark this moment and type a note (Enter saves it) |
-| **H** | Show or hide the key and marks beside the display |
-| **F1** | The How it works tab |
+| **H** | Show or hide the key beside the display |
+| **F1** | Help |
 | **F11** | Full screen (good for filming) |
 | **Ctrl+1** to **Ctrl+5** | Go to a tab |
 | **Ctrl+S** / **Ctrl+O** | Save / open a session |
@@ -185,9 +189,9 @@ label at the top right says "Learning this voice" with a percentage.
 
 The baseline then **stays fixed**, so that slow changes across a session (someone getting steadily
 quieter, say) stay visible.
-- **It learns whoever speaks first.** In a role-play, press **Recalibrate** (R in the corner view)
+- **It learns whoever speaks first.** In a role-play, press **Learn voice again** (R in the mini window)
   as soon as the client starts talking.
-- In **Setup** you can save a baseline and load it next time, so a later session with the same
+- In **Settings** you can save their usual voice and load it next time, so a later session with the same
   person starts already calibrated, or learn the baseline from a recording of them talking
   normally. From the command line: `.\run.bat --baseline their_normal_voice.wav`.
 
@@ -195,10 +199,10 @@ quieter, say) stay visible.
 
 - **M** drops a mark at this moment; **N** drops one and lets you type a note at once. Marks show
   as dashed lines on the signal rows and the maps.
-- In **Review**, double-click a mark to change its note, or **Mark this stretch** to mark a
+- In **Look back**, double-click a mark to change its note, or **Mark this stretch** to mark a
   selected stretch.
 - **Save** keeps the whole session as a `.tonevis` file: the measurements, marks, notes and the
-  baseline. **It contains no sound.** **Open** brings it back into Review.
+  baseline. **It contains no sound.** **Open** brings it back into Look back.
 - **Export → Summary as text** writes a plain summary for supervision notes: the baseline, the
   whole session in words, what changed and when, and each mark with a description of the voice
   around it.
@@ -207,7 +211,7 @@ quieter, say) stay visible.
 ## 7. Privacy
 
 * Everything runs on this computer. After setup it needs no internet, and it sends nothing anywhere.
-* Sound is **never saved** unless you ask for it: the box in Setup, `--record`, or recording takes
+* Sound is **never saved** unless you ask for it: the box in Settings, `--record`, or recording takes
   on purpose (section 8).
 * Measurements stay in memory until you save a session, and a saved session holds numbers only.
 * Your display choices (microphone, what is shown, window size) are remembered in `settings.ini`
@@ -286,13 +290,13 @@ show the clean sentence (A) next to three failures (B to D):
 | Problem | Try this |
 |---|---|
 | "Please double-click setup.bat first" | Run `setup.bat` once (section 1). |
-| Nothing appears when someone speaks | Check the microphone chosen next to **Start listening**, and that the level bar moves when someone talks. In Setup, press **Refresh** after plugging a microphone in. |
+| Nothing appears when someone speaks | Check the microphone chosen next to **Start listening**, and that the level bar moves when someone talks. In Settings, press **Refresh** after plugging a microphone in. |
 | It stays on "Learning this voice" | It needs about 15 s of *voice*. It ignores noise without voice, such as fans or typing. Keep talking, a little closer to the microphone. |
 | "No sound from the microphone" | The microphone may be muted, or Windows may be blocking it: go to Settings > Privacy & security > Microphone and turn on "Let desktop apps access your microphone". On a Mac: System Settings > Privacy & Security > Microphone > allow Terminal. |
 | "The microphone stopped sending sound" | Another app (a call or voice-changer app) may have taken over the microphone, or it was unplugged. Press Stop, then Start listening again. |
 | The line jumps around a lot, or looks amber for no reason | See section 9. Usually it is background sound, or sound coming from speakers. |
-| The window is too big for the screen | Press F11 for full screen, or use the corner view. The dashboard needs at least 1140 × 700. |
-| Everything looks too small on video | Make the window bigger, or press F11. The corner view can be dragged bigger too. |
+| The window is too big for the screen | Press F11 for full screen, or use the mini window. The dashboard needs at least 1140 × 700. |
+| Everything looks too small on video | Make the window bigger, or press F11. The mini window can be dragged bigger too. |
 
 ## 11. Command-line options
 

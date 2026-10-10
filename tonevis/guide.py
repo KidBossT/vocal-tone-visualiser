@@ -36,6 +36,9 @@ KEY_ROWS = (
     ("pace", "Bar = pace: up = faster than usual"),
     ("now", "Dot = their voice right now"),
 )
+# The short key beside the live view: the five things a first-time viewer needs. The rest are in
+# How it works (and the full key, with the details shown).
+COMPACT_KEY = ("pitch", "loud", "quality", "pause", "grey")
 
 
 class KeyGlyph(QWidget):
@@ -147,15 +150,16 @@ def draw_glyph(p: QPainter, kind: str, r: QRectF) -> None:
 
 
 class KeyPanel(QWidget):
-    """Every part of the display, with a one-line meaning."""
+    """Every part of the display, with a one-line meaning (compact: just the main five)."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, compact: bool = False):
         super().__init__(parent)
         grid = QGridLayout(self)
         grid.setContentsMargins(0, 0, 0, 0)
         grid.setHorizontalSpacing(10)
-        grid.setVerticalSpacing(5)
-        for row, (kind, text) in enumerate(KEY_ROWS):
+        grid.setVerticalSpacing(7 if compact else 5)
+        rows = [r for r in KEY_ROWS if r[0] in COMPACT_KEY] if compact else list(KEY_ROWS)
+        for row, (kind, text) in enumerate(rows):
             grid.addWidget(KeyGlyph(kind), row, 0, Qt.AlignmentFlag.AlignVCenter)
             grid.addWidget(T.label(text, "secondary"), row, 1)   # one line each: see below
         grid.setColumnStretch(1, 1)
@@ -339,7 +343,7 @@ voice</b>.</p>
 <p class="lead">It never says what anyone feels. It shows evidence about the voice; what that
 evidence means is yours to judge, together with their words, face, posture and the situation.</p>
 <p><a href="#reading">Reading the display</a> &nbsp;·&nbsp; <a href="#session">A session, start to
-finish</a> &nbsp;·&nbsp; <a href="#tabs">The five tabs</a> &nbsp;·&nbsp; <a href="#change">Reading a
+finish</a> &nbsp;·&nbsp; <a href="#tabs">The tabs</a> &nbsp;·&nbsp; <a href="#change">Reading a
 change</a> &nbsp;·&nbsp; <a href="#keys">Keys</a> &nbsp;·&nbsp; <a href="#privacy">Privacy</a>
 &nbsp;·&nbsp; <a href="#limits">What it cannot do</a> &nbsp;·&nbsp; <a href="#words">Words used
 here</a></p>
@@ -355,9 +359,9 @@ sound. The pictures below are drawn by the app itself.</p>
 {_example_row(("band",), "<b>The faint band is their usual range.</b> Eight out of ten moments of this person's ordinary speech fall inside it. The second phrase here goes above the band: unusually high for them.")}
 {_example_row(("loudness",), "<b>Thickness and brightness are loudness.</b> A thin, dim line is quieter than their usual; a thick, bright line is louder. Loudness is shown twice on purpose: the corner of the eye picks up brightness better than detail.")}
 {_example_row(("quality",), "<b>Colour is voice quality.</b> White is their usual. <b>Amber</b> means more energy in the higher frequencies than usual, which happens when the vocal folds press together harder (a pressed, effortful voice). <b>Blue</b> means less, as in a softer or breathier voice. There is no red, and blue and amber stay distinct for the common kinds of colour blindness.")}
-{_example_row(("pauses",), "<b>Gaps are pauses.</b> A thin, dim join bridges tiny gaps inside words (sounds such as s, t and k have no pitch). A real gap is a pause of a quarter of a second or more. Pauses of 1 second or longer are shaded, darker at 2 and at 3 seconds. While a pause is happening, its shading grows at the right-hand edge.")}
+{_example_row(("pauses",), "<b>Gaps are pauses.</b> A thin join bridges tiny gaps inside words (sounds such as s, t and k have no pitch). A real gap is a pause of a quarter of a second or more. Pauses of 1 second or longer are shaded, darker at 2 and at 3 seconds. While a pause is happening, its shading grows at the right-hand edge.")}
 {_example_row(("faster", "slower"), "<b>Ticks and the bar show pace.</b> Each tick along the bottom is one syllable, so close ticks mean fast talking. The bar on the right compares their pace with their usual (the notch): it grows <b>up</b> when they are faster than usual (left picture) and <b>down</b> when slower (right). Pauses are left out of the pace, so a long silence does not pull the bar down; the bar fades instead.")}
-{_example_row(("learning",), "<b>Grey means still learning.</b> For about the first 20 seconds of someone talking, the app learns their usual voice. Until then the line is grey, the ring fills up, and there is no colour and no pace bar, because there is nothing yet to compare with.")}
+{_example_row(("learning",), "<b>Grey means still learning.</b> For about the first 20 seconds of someone talking, the app learns their usual voice. Until then the line is grey, a bar fills up, and there is no colour and no pace bar, because there is nothing yet to compare with.")}
 {_example_row(("now",), "<b>The dot is now.</b> A glowing dot marks their voice at this moment, at the right-hand edge.")}
 </table>
 <p>Faint dashes along the very top or bottom edge mean the measured pitch went past the edge of
@@ -365,36 +369,40 @@ the scale. Usually that is a measuring slip (see <a href="#limits">What it canno
 then a real extreme.</p>
 
 <a name="session"></a><h2>A session, start to finish</h2>
-<p><b>Before.</b> In <b>Setup</b>, choose the microphone and check that the level bar reaches the
-lighter zone when someone talks. If you saved a baseline for this person last time, load it and
-the app starts already knowing their voice.</p>
-<p><b>During.</b> On the <b>Live</b> tab press <b>Start listening</b>. In a role-play, press
-<b>Recalibrate</b> as soon as the client starts talking, so that the app learns their voice
-rather than yours. Open the <b>Corner view</b> for the small window that stays on top of other
-windows. Press <b>M</b> to mark a moment you want to come back to, or <b>N</b> to mark it and
-type a short note. <b>Space</b> freezes the picture.</p>
-<p><b>After.</b> In <b>Review</b>, the session map and the <b>What changed</b> list show where the
+<p><b>Before.</b> In <b>Settings</b> (the last tab), choose the microphone and check that the
+level bar reaches the lighter zone when someone talks. If you saved this person's usual voice last
+time, load it and the app starts already knowing them.</p>
+<p><b>During.</b> On the <b>Live</b> tab press <b>Start listening</b>. The three steps above the
+display say what is happening: first the app learns their usual voice (keep them talking for
+about 20 seconds), then it shows how their voice changes. In a role-play, press <b>Learn voice
+again</b> as soon as the client starts talking, so that the app learns their voice rather than
+yours. <b>Mini window</b> opens a small window that stays on top of other windows. Press
+<b>Mark</b> (or <b>M</b>) for a moment you want to come back to, or <b>N</b> to mark it and type a
+short note. <b>Space</b> pauses the picture.</p>
+<p><b>After.</b> In <b>Look back</b>, the session map and the <b>What changed</b> list show where the
 voice stayed clearly away from the usual for a few seconds. Drag across the map to look at any
 stretch, compare two stretches, add notes to your marks, then save the session (numbers only,
 never sound) or export a summary for supervision notes.</p>
 
-<a name="tabs"></a><h2>The five tabs</h2>
+<a name="tabs"></a><h2>The tabs</h2>
 <table cellspacing="0" cellpadding="6">
-<tr><td class="key" width="130">Live</td><td>Watch a voice as it happens: the big display, the key, each
-signal on its own row for the last minute, and the whole session in one strip.</td></tr>
-<tr><td class="key">Review</td><td>Look back over a session: what changed, when, and your notes.
-You can also analyse a recording here.</td></tr>
-<tr><td class="key">Compare</td><td>The same words spoken different ways, side by side, all
-measured against one baseline. This is also where you record your own takes.</td></tr>
-<tr><td class="key">How it works</td><td>This page.</td></tr>
-<tr><td class="key">Setup</td><td>Microphone, calibration and baselines, display options,
-privacy.</td></tr>
+<tr><td class="key" width="130">Live</td><td>Watch a voice as it happens: the big display and a
+short key. Under <b>More</b>: the demo, sound files, sessions, and an option to also show each
+signal on its own row and the whole session.</td></tr>
+<tr><td class="key">Look back</td><td>Look back over a session: what changed, when, and your
+notes. You can also analyse a recording here.</td></tr>
+<tr><td class="key">Compare</td><td>The same words spoken different ways, side by side, each
+compared with a recording of the same person's usual voice. This is also where you record your
+own takes.</td></tr>
+<tr><td class="key">Help (book icon)</td><td>This page.</td></tr>
+<tr><td class="key">Settings (sliders icon)</td><td>Microphone, learning the usual voice, display
+options, privacy.</td></tr>
 </table>
 
 <a name="change"></a><h2>Reading a change: a checklist</h2>
 <ol>
-<li><b>Is it different from <i>their</i> usual?</b> Only changes from this person's own baseline
-matter. A naturally quiet or fast speaker is not a finding.</li>
+<li><b>Is it different from <i>their</i> usual?</b> Only changes from this person's own usual
+voice matter. A naturally quiet or fast speaker is not a finding.</li>
 <li><b>When did it start?</b> What was being talked about just before? Mark it (M) so you can come
 back to it.</li>
 <li><b>Does it fit what you can see?</b> Face, posture, the words. When the voice and the words
@@ -407,21 +415,21 @@ going on for you just then?"</i></li>
 
 <a name="keys"></a><h2>Keys</h2>
 <table cellspacing="0" cellpadding="5">
-<tr><td class="key" width="130">Space</td><td>Freeze the live picture, and again to go live</td></tr>
+<tr><td class="key" width="130">Space</td><td>Pause the live picture, and again to go live</td></tr>
 <tr><td class="key">M</td><td>Mark this moment</td></tr>
 <tr><td class="key">N</td><td>Mark this moment and type a note (Enter saves it)</td></tr>
-<tr><td class="key">H</td><td>Show or hide the key and marks beside the live view</td></tr>
+<tr><td class="key">H</td><td>Show or hide the key beside the live view</td></tr>
 <tr><td class="key">F11</td><td>Full screen</td></tr>
 <tr><td class="key">F1</td><td>This page</td></tr>
 <tr><td class="key">Ctrl+1 to Ctrl+5</td><td>Go to a tab</td></tr>
 <tr><td class="key">Ctrl+S, Ctrl+O</td><td>Save the session, open a session</td></tr>
 </table>
-<p>In the corner view: Space freeze, M mark, R recalibrate, T keep on top (or not), H key, Esc
-hide.</p>
+<p>In the mini window: Space pause, M mark, R learn voice again, T keep on top (or not), H key,
+Esc hide.</p>
 
 <a name="privacy"></a><h2>Privacy</h2>
 <p>Everything runs on this computer. The app has no internet features and sends nothing anywhere.
-Sound is never saved unless you choose to: the box in Setup, or recording takes on purpose in
+Sound is never saved unless you choose to: the box in Settings, or recording takes on purpose in
 Compare. The measurements stay in memory until you save a session, and a saved session holds
 numbers only, never sound. Your display choices are remembered in a small file, settings.ini, in
 the app's folder.</p>
@@ -432,7 +440,7 @@ the app's folder.</p>
 someone is; what that means comes from the context.</li>
 <li>Two people talking at once: loudness and pace mix both voices.</li>
 <li>A voice coming out of a small speaker (a video call on laptop speakers) looks amber when it
-is not: calibrate through the same sound path you will use.</li>
+is not: let it learn the usual voice through the same sound path you will use.</li>
 <li>Whispering has no pitch. Creaky voice at the ends of sentences drops out. Very fast speech is
 counted as a little slower than it is.</li>
 <li>It hears everyone in the room, including you.</li>
@@ -458,11 +466,11 @@ voice is sounding.</td></tr>
 out.</td></tr>
 <tr><td class="key">Voice quality</td><td>How the voice's energy is shared between low and high
 frequencies (the "spectral tilt").</td></tr>
-<tr><td class="key">Baseline</td><td>This person's usual pitch, range, loudness, pace and voice
-quality.</td></tr>
-<tr><td class="key">Calibration</td><td>The first 15 seconds or so of speech, while the app learns
-the baseline. The baseline then stays fixed until you recalibrate, so slow changes across a
-session stay visible.</td></tr>
+<tr><td class="key">Usual voice</td><td>This person's usual pitch, range, loudness, pace and
+voice quality (sometimes called the baseline).</td></tr>
+<tr><td class="key">Learning the voice</td><td>The first 15 seconds or so of speech, while the
+app learns their usual voice. It then stays fixed until you press Learn voice again, so slow
+changes across a session stay visible.</td></tr>
 </table>
 <p class="dim"><a href="#top">Back to the top</a></p>
 </td></tr></table>

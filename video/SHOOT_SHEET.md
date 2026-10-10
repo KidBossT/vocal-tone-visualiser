@@ -1,5 +1,7 @@
 # Shoot sheet: the Stage 1 video (one page)
 
+> **Replaced on 10 Oct 2026.** The video is now a walk-and-talk around school, presented by the team. The current script, shot list and filming notes are in the shared doc *Tone Visualiser: Stage 1 video script* (the link is in the team WhatsApp group). This file is kept for its background: the tests with people, consent and editing notes still apply.
+
 The full plan, with every scene's narration, is in [`demo/DEMO_SCRIPT.md`](../demo/DEMO_SCRIPT.md).
 This page covers who does what, and what is already made.
 

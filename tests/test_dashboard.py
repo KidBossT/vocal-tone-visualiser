@@ -313,3 +313,39 @@ def test_the_live_view_explains_itself(dash):
     assert "Pace" in at(r.pace)
     assert "syllable" in at(r.lane)
     assert "pitch" in at(r.plot)
+
+
+
+# ---- one clean screen (session 6) ------------------------------------------------------------
+
+def test_live_starts_as_one_clean_screen(dash):
+    assert dash.details.isHidden()                       # signal rows and session strip: opt-in
+    assert dash.marks_card.isHidden()                    # marks appear once there is one
+    dash.set_details(True)
+    assert not dash.details.isHidden() and dash.details_action.isChecked()
+    assert dash.details_check.isChecked()
+    dash.set_details(False)
+    assert dash.details.isHidden()
+
+
+def test_the_steps_say_where_you_are(dash):
+    dash._update_chips()
+    assert dash.steps.highlight == 0 and "1  Start listening" in dash.steps.items[0][1]
+    assert dash.start_listening(file_path=os.path.join(DEMO, "take_a.wav"), mute=True)
+    run_event_loop(500)
+    dash._update_chips()
+    assert dash.steps.highlight == 1 and "Learning their usual voice" in dash.steps.items[1][1]
+    dash.stop_listening()
+
+
+def test_a_mark_shows_the_marks_card(dash):
+    with_session(dash, build_session([USUAL, PAUSE, CHANGED]))
+    dash.add_mark()
+    dash._refresh_review(force=True)
+    assert not dash.marks_card.isHidden()
+
+
+def test_plain_words_in_the_controls(dash):
+    texts = {dash.tabs.tabText(k) for k in range(dash.tabs.count())}
+    assert "Look back" in texts and "Review" not in texts and "Setup" not in texts
+    assert dash.corner_button.text() == "Mini window"

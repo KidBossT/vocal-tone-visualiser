@@ -8,7 +8,7 @@ import queue
 import signal
 import sys
 
-KEYS = "Keys in the window: Space freeze, R recalibrate, T always-on-top, H help, Q quit."
+KEYS = "Keys in the window: Space pause, R learn voice again, T always-on-top, H help, Q quit."
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -151,7 +151,7 @@ def _run_dashboard(args, baseline, calibration: float | None) -> int:
               f"{window.pending_record_path}. Press Stop to finish.", flush=True)
     elif args.record is not None:            # --record alone: save every run (the Setup box)
         window.record_check.setChecked(True)
-    print("Opening the dashboard. Keys: Space freeze, M mark, N mark with a note, H key, "
+    print("Opening the dashboard. Keys: Space pause, M mark, N mark with a note, H key, "
           "F1 how it works, F11 full screen.", flush=True)
     window.show()
     if args.listen:

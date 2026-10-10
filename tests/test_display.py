@@ -310,3 +310,32 @@ def test_empty_views_draw_without_errors(app):
     view, _ = render(frames(), ref=Reference(False, 0.0, None, None, None, None, None))
     view.now_fn = lambda: None
     view.grab()
+
+
+
+# ---- easier to read (session 6) --------------------------------------------------------------
+
+def test_the_big_view_caps_its_vertical_scale(app):
+    view, _ = render(frames(), size=(1000, 800))
+    plot = view.layout_rects().plot
+    free = plot.center().y() - float(view.y_for(C.SEMITONE_RANGE, plot))
+    view.cap_scale = True
+    capped = plot.center().y() - float(view.y_for(C.SEMITONE_RANGE, plot))
+    assert free > 300 and capped <= C.MAX_PX_PER_SEMITONE * C.SEMITONE_RANGE + 0.5
+
+
+def test_short_voiced_runs_are_smoothed_without_errors(app):
+    # runs of 5, 6 and 7 frames: shorter than the smoothing window
+    voiced = lambda i: REF_HZ if (100 <= i < 105 or 200 <= i < 206 or 300 <= i < 307) else NAN  # noqa: E731
+    render(frames(f0=voiced))
+
+
+def test_the_learning_banner_and_axis_words_draw(app):
+    view, image = render(frames(), ref=CALIBRATING, size=(900, 500))
+    before = image
+    view.learning_banner = True
+    view.axis_words = True
+    after = view.grab().toImage()
+    plot = view.layout_rects().plot
+    x, y = int(plot.center().x()), int(plot.top()) + 30
+    assert after.pixelColor(x, y) != before.pixelColor(x, y)     # the banner is there

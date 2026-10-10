@@ -1,17 +1,17 @@
 """The dashboard: everything around the live display, for setup, the supervisor and review.
 
 Tabs
-  Live          the display large, with a key beside it; each signal on its own track over the
-                last minute; the whole session at a glance; marks and notes; and the corner
-                view, the small always-on-top window watched from the corner of the eye during
-                a session.
-  Review        the whole session: what changed and when, a summary of any stretch you select,
+  Live          one clean screen: the display large, a short key beside it, and three steps
+                that say what is happening (start, learning their usual voice, watching). The
+                mini window is the small always-on-top copy watched from the corner of the eye.
+                Each signal on its own row and the whole session are details, off by default.
+  Look back     the whole session: what changed and when, a summary of any stretch you select,
                 two stretches compared, marks with notes; save (numbers only) and export.
   Compare       recordings side by side against one baseline (the demo comparison), and
                 recording your own takes for it.
-  How it works  how to read everything, a session start to finish, a checklist for reading a
+  Help          how to read everything, a session start to finish, a checklist for reading a
                 change, keys, privacy and limits.
-  Setup         microphone, calibration and baselines, display, privacy.
+  Settings      microphone, learning the usual voice, display, privacy.
 
 Everything shown is evidence about the voice. Nothing here names a feeling: what a change
 means is for the person watching to decide.
@@ -380,11 +380,11 @@ class ChangeMap(QWidget):
 class StartCard(QFrame):
     """What to do first, shown over the empty live view until something is playing."""
 
-    STEPS = ("Choose a microphone at the top, then press Start listening.",
-             "Let the person talk normally for about 20 seconds. The line stays grey while the "
-             "app learns their usual voice, then turns white.",
-             "Watch how the line changes. The key on the right explains every part (H hides "
-             "it).")
+    STEPS = ("Press Start listening and let the person talk normally.",
+             "For the first 20 seconds or so the app learns their usual voice. The line is grey "
+             "until then.",
+             "Then watch the line: it shows how their voice moves away from their usual. The "
+             "key on the right says what each part means.")
 
     def __init__(self, dashboard: "Dashboard", parent: QWidget):
         super().__init__(parent)
@@ -499,11 +499,12 @@ class StatusChips(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.items: list[tuple[str, str]] = []
+        self.highlight = -1                  # this chip gets an accent outline (the current step)
         self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
 
-    def set_items(self, items: list[tuple[str, str]]) -> None:
-        if items != self.items:
-            self.items = items
+    def set_items(self, items: list[tuple[str, str]], highlight: int = -1) -> None:
+        if items != self.items or highlight != self.highlight:
+            self.items, self.highlight = items, highlight
             self.updateGeometry()
             self.update()
 
@@ -523,10 +524,11 @@ class StatusChips(QWidget):
         h = fm.height() + 10.0
         y = (self.height() - h) / 2.0
         x = 2.0
-        for (marker, text), w in zip(self.items, self._widths()):
+        for k, ((marker, text), w) in enumerate(zip(self.items, self._widths())):
             chip = QRectF(x, y, w, h)
-            p.setPen(QPen(QColor(T.CARD_BORDER), 1.0))
-            p.setBrush(QColor(T.CARD_BG))
+            current = k == self.highlight
+            p.setPen(QPen(QColor(ACCENT if current else T.CARD_BORDER), 1.6 if current else 1.0))
+            p.setBrush(QColor(T.ACCENT_SOFT if current else T.CARD_BG))
             p.drawRoundedRect(chip, h / 2, h / 2)
             tx = chip.left() + 10.0
             cx, cy = chip.left() + 15.0, chip.center().y()
@@ -556,7 +558,7 @@ class StatusChips(QWidget):
                 p.drawArc(ring, 90 * 16, -int(360 * 16 * progress))
             if marker:
                 tx = chip.left() + 26.0
-            p.setPen(QColor(T.TEXT_2))
+            p.setPen(QColor(T.TEXT if current else T.TEXT_2))
             p.drawText(QRectF(tx, chip.top(), chip.right() - tx - 8, h),
                        Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, text)
             x += w + 8.0
@@ -572,8 +574,8 @@ class CornerWindow(ToneView):
         self.dashboard = dashboard
         self.now_fn = engine.now
         self.help_lines = HELP_LINES[:-1] + (
-            "Space freeze   M mark   R recalibrate   T on top   H help   Esc hide",)
-        self.setWindowTitle("Tone visualiser (corner view)")
+            "Space pause   M mark   R learn voice again   T on top   H help   Esc hide",)
+        self.setWindowTitle("Tone visualiser (mini window)")
         self.setWindowIcon(T.app_icon())
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
         font = QFont(self.font())            # the small window's own size (the dashboard uses
@@ -720,7 +722,7 @@ class Dashboard(QMainWindow):
             calibration_seconds = self.prefs.get("calibration_seconds",
                                                  float(C.CALIBRATION_SPEECH_SECONDS))
         if live_seconds is None:
-            live_seconds = self.prefs.get("live_seconds", 15.0)
+            live_seconds = self.prefs.get("live_seconds", 10.0)
         self.engine = Engine(calibration_seconds=calibration_seconds)
         self.live_seconds = float(live_seconds)
         self.debug = debug
@@ -753,17 +755,20 @@ class Dashboard(QMainWindow):
         outer.addWidget(self.tabs)
         self.setCentralWidget(page)
         self.tabs.addTab(self._build_live(), T.icon("live", T.TEXT_2), "Live")
-        self.tabs.addTab(self._build_review(), T.icon("review", T.TEXT_2), "Review")
+        self.tabs.addTab(self._build_review(), T.icon("review", T.TEXT_2), "Look back")
         self.tabs.addTab(self._build_compare(), T.icon("compare", T.TEXT_2), "Compare")
-        self.tabs.addTab(self._build_guide(), T.icon("guide", T.TEXT_2), "How it works")
-        self.tabs.addTab(self._build_setup(), T.icon("setup", T.TEXT_2), "Setup")
+        # Help and Settings are small icon tabs at the end: the three that matter have words.
+        self.tabs.addTab(self._build_guide(), T.icon("guide", T.TEXT_2), "")
+        self.tabs.addTab(self._build_setup(), T.icon("setup", T.TEXT_2), "")
+        self.tabs.setTabToolTip(GUIDE, "Help: how to read the display, and how to use the app (F1)")
+        self.tabs.setTabToolTip(SETUP, "Settings: microphone, learning the voice, display, privacy")
         self.chips = StatusChips()
         self.tabs.setCornerWidget(self.chips, Qt.Corner.TopRightCorner)
         self.tabs.currentChanged.connect(lambda _: self._refresh_review(force=True))
         self.delay_label = _label("", "dim")
         self.statusBar().addPermanentWidget(self.delay_label)
-        self.statusBar().showMessage("Ready. Choose a microphone and press Start listening, or "
-                                     "try the demo recording.")
+        self.statusBar().showMessage("Ready. Press Start listening, or try the demo recording "
+                                     "(under More).")
 
         for keys, slot in (("M", self.add_mark), ("N", self.add_mark_with_note),
                            ("Space", self._space), ("H", self.toggle_side_panel),
@@ -797,11 +802,13 @@ class Dashboard(QMainWindow):
     # ---- building the tabs ------------------------------------------------------------------
 
     def _build_live(self) -> QWidget:
+        """One clean screen: the controls, the steps, the display and a short key. The signal
+        rows and the whole-session strip are details, off unless chosen (More, or Settings)."""
         page = QWidget()
         page.setObjectName("page")
         layout = QVBoxLayout(page)
         layout.setContentsMargins(0, 8, 0, 0)
-        layout.setSpacing(10)
+        layout.setSpacing(8)
 
         bar = QHBoxLayout()
         bar.setSpacing(8)
@@ -809,134 +816,143 @@ class Dashboard(QMainWindow):
                                     checkable=True, primary=True, icon_name="play")
         self.start_button.toggled.connect(self._start_toggled)
         self.mic_combo = QComboBox()
-        self.mic_combo.setMinimumWidth(210)
-        self.mic_combo.setMaximumWidth(320)
+        self.mic_combo.setMinimumWidth(200)
+        self.mic_combo.setMaximumWidth(300)
         self.mic_combo.setToolTip("Which microphone to listen to")
         self.live_meter = LevelMeter()
         self.live_meter.setFixedWidth(90)
-        recal = _button("Recalibrate", "Forget this voice and learn the next speaker from their "
-                        "first 15 seconds of speech", icon_name="recal")
-        recal.clicked.connect(self.recalibrate)
-        self.freeze_button = _button("Freeze", "Freeze the picture (Space); press again to go live",
-                                     checkable=True, icon_name="freeze")
-        self.freeze_button.toggled.connect(self._freeze_toggled)
-        self.corner_button = _button("Corner view", "The small always-on-top window, to watch "
-                                     "from the corner of your eye during a session",
-                                     checkable=True, icon_name="corner")
-        self.corner_button.toggled.connect(self._corner_toggled)
+        self.live_meter.setToolTip("How loud the microphone hears it")
         for w in (self.start_button, self.mic_combo, self.live_meter):
             bar.addWidget(w)
-        bar.addSpacing(8)
-        for w in (recal, self.freeze_button, self.corner_button):
+        bar.addSpacing(10)
+        relearn = _button("Learn voice again", "Forget this voice and learn the next speaker's "
+                          "usual voice from their first seconds of talking (in a role-play: press "
+                          "it when the client starts talking)", icon_name="recal")
+        relearn.clicked.connect(self.recalibrate)
+        mark = _button("Mark", "Mark this moment, to come back to it afterwards (M; N to add a "
+                       "note)", icon_name="mark")
+        mark.clicked.connect(self.add_mark)
+        self.corner_button = _button("Mini window", "A small window that stays on top of "
+                                     "everything, to watch from the corner of your eye",
+                                     checkable=True, icon_name="corner")
+        self.corner_button.toggled.connect(self._corner_toggled)
+        for w in (relearn, mark, self.corner_button):
             bar.addWidget(w)
         bar.addStretch(1)
-        recordings = _button("Recordings", "Try the demo recording, or play a sound file "
-                             "through the display", icon_name="demo")
-        menu = QMenu(recordings)
+
+        more = _button("More", "The demo, sound files, sessions and display options",
+                       icon_name="session")
+        menu = QMenu(more)
         menu.addAction(T.icon("demo"), "Try the demo recording", lambda: self.try_demo())
         menu.addAction(T.icon("open"), "Play a sound file…", self.play_file_dialog)
-        recordings.setMenu(menu)
-        session = _button("Session", "Start a new session, or save or open one",
-                          icon_name="session")
-        menu = QMenu(session)
+        menu.addSeparator()
         menu.addAction(T.icon("new"), "New session", self.new_session_clicked)
         menu.addAction(T.icon("save"), "Save session…   Ctrl+S", self.save_session_dialog)
         menu.addAction(T.icon("open"), "Open session…   Ctrl+O", self.open_session_dialog)
+        menu.addAction(T.icon("review"), "Look back at this session", self._review_now)
         menu.addSeparator()
-        menu.addAction(T.icon("review"), "Review this session", self._review_now)
-        session.setMenu(menu)
-        self.panel_button = _button("Key", "Show or hide the key and marks beside the display (H)",
-                                    checkable=True, icon_name="panel")
+        # Checkable actions stand in for the old toolbar buttons (same signals, same names).
+        self.freeze_button = menu.addAction(T.icon("freeze"), "Pause the picture   Space")
+        self.freeze_button.setCheckable(True)
+        self.freeze_button.toggled.connect(self._freeze_toggled)
+        self.panel_button = menu.addAction(T.icon("panel"), "Show the key beside the display   H")
+        self.panel_button.setCheckable(True)
         self.panel_button.toggled.connect(self.set_side_panel)
-        for w in (recordings, session, self.panel_button):
-            bar.addWidget(w)
+        self.details_action = menu.addAction("Show each signal on its own row")
+        self.details_action.setCheckable(True)
+        self.details_action.toggled.connect(self.set_details)
+        more.setMenu(menu)
+        bar.addWidget(more)
         layout.addLayout(bar)
+
+        self.steps = StatusChips()
+        self.steps.setToolTip("Where you are: the app first learns the person's usual voice, then "
+                              "shows how their voice changes from it")
+        layout.addWidget(self.steps)
 
         self.live_view = LiveView(self.engine, self.live_seconds)
         self.live_view.setMinimumHeight(200)
+        self.live_view.learning_banner = True
+        self.live_view.axis_words = True
+        self.live_view.cap_scale = True
         self.start_card = StartCard(self, self.live_view)
         self.live_view.start_card = self.start_card
         view_card = T.Card()
         view_card.body.setContentsMargins(6, 6, 6, 6)
         view_card.add(self.live_view, 1)
 
-        self.strip = SignalStrip(lambda: self.engine.session, lambda: self.engine.reference,
-                                 self.engine.now, seconds=self.prefs.get("strip_seconds", 60.0))
-        strip_card = T.Card("The last minute, one signal per row")
-        strip_card.add_action(_label("Middle line = their usual. Shaded = pauses. "
-                                     "Dashed = your marks.", "cardHint"))
-        strip_card.add(self.strip, 1)
-
-        left = QSplitter(Qt.Orientation.Vertical)
-        left.setChildrenCollapsible(False)
-        left.setHandleWidth(10)
-        left.addWidget(view_card)
-        left.addWidget(strip_card)
-        left.setStretchFactor(0, 3)
-        left.setStretchFactor(1, 2)
-        left.setSizes([440, 250])
-
         side_content = QWidget()
         side = QVBoxLayout(side_content)
         side.setContentsMargins(0, 0, 0, 0)
         side.setSpacing(10)
         key_card = T.Card("How to read it")
-        key_card.add(KeyPanel())
-        key_card.add(_label("All compared with their own usual voice.", "cardHint"))
+        key_card.add(KeyPanel(compact=True))
+        key_card.add(_label("The middle line is their usual voice. Everything is compared with "
+                            "it. The full key is under Help (F1).", "cardHint", wrap=True))
         key_card.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         side.addWidget(key_card, 0)
 
-        marks_card = T.Card("Marks")
-        marks_card.add(_label("M marks a moment; N adds a note.", "cardHint"))
+        # Marks appear here only once there is one (M, or the Mark button).
+        self.marks_card = T.Card("Your marks")
+        self.marks_card.add(_label("Double-click one to add a note. They are also in Look back.",
+                                   "cardHint", wrap=True))
         self.live_marks = QListWidget()
         self.live_marks.setMinimumHeight(40)
         self.live_marks.itemDoubleClicked.connect(lambda _item: self._focus_note())
-        marks_card.add(self.live_marks, 1)
+        self.marks_card.add(self.live_marks, 1)
         self.note_edit = QLineEdit()
         self.note_edit.setPlaceholderText("Note for the latest mark, then Enter")
         self.note_edit.returnPressed.connect(self.save_note)
         QShortcut(QKeySequence("Escape"), self.note_edit,
                   context=Qt.ShortcutContext.WidgetShortcut).activated.connect(self.note_edit.clearFocus)
-        marks_card.add(self.note_edit)
-        row = QHBoxLayout()
-        mark = _button("Mark (M)", "Mark this moment", icon_name="mark")
-        mark.clicked.connect(self.add_mark)
-        note = _button("Mark + note (N)", "Mark this moment and type a note", icon_name="note")
-        note.clicked.connect(self.add_mark_with_note)
-        row.addWidget(mark)
-        row.addWidget(note)
-        row.addStretch(1)
-        marks_card.add_layout(row)
-        side.addWidget(marks_card, 1)
-        side_content.setMinimumWidth(330)
+        self.marks_card.add(self.note_edit)
+        self.marks_card.hide()
+        side.addWidget(self.marks_card, 1)
+        side.addStretch(0)
+        side_content.setMinimumWidth(300)
         # On a short window the column scrolls rather than squashing the key.
         self.side_panel = QScrollArea()
         self.side_panel.setWidgetResizable(True)
         self.side_panel.setFrameShape(QFrame.Shape.NoFrame)
         self.side_panel.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.side_panel.setWidget(side_content)
-        self.side_panel.setMinimumWidth(342)
-        self.side_panel.setMaximumWidth(410)
+        self.side_panel.setMinimumWidth(312)
+        self.side_panel.setMaximumWidth(380)
 
         main = QSplitter(Qt.Orientation.Horizontal)
         main.setChildrenCollapsible(False)
         main.setHandleWidth(10)
-        main.addWidget(left)
+        main.addWidget(view_card)
         main.addWidget(self.side_panel)
         main.setStretchFactor(0, 1)
-        main.setSizes([900, 330])
+        main.setSizes([940, 320])
         layout.addWidget(main, 1)
 
+        # Details for a supervisor who wants them: each signal on its own row over the last
+        # minute, and the whole session. Off by default: one display is easier to read.
+        self.details = QWidget()
+        dl = QVBoxLayout(self.details)
+        dl.setContentsMargins(0, 0, 0, 0)
+        dl.setSpacing(10)
+        self.strip = SignalStrip(lambda: self.engine.session, lambda: self.engine.reference,
+                                 self.engine.now, seconds=self.prefs.get("strip_seconds", 60.0))
+        strip_card = T.Card("The last minute, one signal per row")
+        strip_card.add_action(_label("Middle line = their usual. Shaded = pauses. "
+                                     "Dashed = your marks.", "cardHint"))
+        strip_card.add(self.strip, 1)
+        strip_card.setMinimumHeight(190)
+        dl.addWidget(strip_card)
         map_card = T.Card("Whole session")
-        map_card.add_action(_label("Click anywhere to look back at that moment in Review.",
-                                   "cardHint"))
+        map_card.add_action(_label("Click anywhere to look back at that moment.", "cardHint"))
         self.live_map = ChangeMap(compact=True)
         self.live_map.set_session(self.engine.session)
         self.live_map.setFixedHeight(58)
         self.live_map.selection_changed.connect(self._review_at)
         map_card.add(self.live_map)
-        layout.addWidget(map_card)
+        dl.addWidget(map_card)
+        layout.addWidget(self.details)
         self.set_side_panel(self.prefs.get("side_panel", True))
+        self.set_details(self.prefs.get("show_details", False))
         return page
 
     def _build_review(self) -> QWidget:
@@ -945,7 +961,7 @@ class Dashboard(QMainWindow):
         layout = QVBoxLayout(page)
         layout.setContentsMargins(0, 10, 0, 0)
         layout.setSpacing(10)
-        header = T.PageHeader("Review", "Look back over a whole session: where the voice "
+        header = T.PageHeader("Look back", "Look back over a whole session: where the voice "
                               "stayed away from their usual, when, and your notes.", "review")
         self.review_buttons = {}
         for text, slot, icon_name in (("Back to this session", self.review_live_session, "back"),
@@ -1049,8 +1065,8 @@ class Dashboard(QMainWindow):
         layout.setContentsMargins(0, 10, 0, 0)
         layout.setSpacing(10)
         header = T.PageHeader("Compare", "The same words spoken different ways, side by side. "
-                              "Each panel is measured against one baseline recording of the "
-                              "same person, on one shared time scale.", "compare")
+                              "Each panel is compared with a recording of the same person's "
+                              "usual voice, on one shared time scale.", "compare")
         self.compare_numbers_check = QCheckBox("Show numbers")
         self.compare_numbers_check.setToolTip("Show each recording's measurements under the panels")
         self.compare_numbers_check.toggled.connect(self.set_show_numbers)
@@ -1073,7 +1089,8 @@ class Dashboard(QMainWindow):
             choose.clicked.connect(lambda _=False, n=name: self._choose_compare_file(n))
             clear = _button("", "Clear", icon_name="trash", flat=True)
             clear.clicked.connect(lambda _=False, n=name: self._set_compare_file(n, ""))
-            form.addWidget(_label(name, "cardTitle"), row, 0)
+            form.addWidget(_label("Usual voice" if name == "Baseline" else name, "cardTitle"),
+                           row, 0)
             form.addWidget(edit, row, 1)
             form.addWidget(choose, row, 2)
             form.addWidget(clear, row, 3)
@@ -1122,7 +1139,7 @@ class Dashboard(QMainWindow):
         outer = QVBoxLayout(page)
         outer.setContentsMargins(0, 10, 4, 0)
         outer.setSpacing(10)
-        outer.addWidget(T.PageHeader("Setup", "Microphone, learning the speaker, what the display "
+        outer.addWidget(T.PageHeader("Settings", "Microphone, learning the speaker, what the display "
                                      "shows, and privacy. Your choices are remembered.", "setup"))
         grid = QGridLayout()
         grid.setHorizontalSpacing(10)
@@ -1147,10 +1164,10 @@ class Dashboard(QMainWindow):
         self.setup_mic_combo.currentIndexChanged.connect(self.mic_combo.setCurrentIndex)
         grid.addWidget(mic, 0, 0)
 
-        cal = T.Card("Learning the speaker (calibration)",
-                     "The app learns whoever speaks first. In a role-play, press Recalibrate when "
-                     "the client starts talking. A saved baseline lets a later session with the "
-                     "same person start already calibrated.")
+        cal = T.Card("Their usual voice",
+                     "The app learns the usual voice of whoever speaks first. In a role-play, "
+                     "press Learn voice again when the client starts talking. Saving it lets a "
+                     "later session with the same person start already knowing them.")
         form = QGridLayout()
         form.setHorizontalSpacing(10)
         form.addWidget(_label("Learn from", "secondary"), 0, 0)
@@ -1161,16 +1178,16 @@ class Dashboard(QMainWindow):
         self.cal_seconds.setSuffix(" s of speech")
         self.cal_seconds.valueChanged.connect(self._set_calibration_seconds)
         form.addWidget(self.cal_seconds, 0, 1, Qt.AlignmentFlag.AlignLeft)
-        form.addWidget(_label("Current baseline", "secondary"), 1, 0, Qt.AlignmentFlag.AlignTop)
+        form.addWidget(_label("Learned so far", "secondary"), 1, 0, Qt.AlignmentFlag.AlignTop)
         self.baseline_text = _label("", wrap=True)
         form.addWidget(self.baseline_text, 1, 1)
         form.setColumnStretch(1, 1)
         cal.add_layout(form)
         row = QHBoxLayout()
-        for text, slot in (("Recalibrate now", self.recalibrate),
-                           ("Save baseline…", self.save_baseline_dialog),
-                           ("Load baseline…", self.load_baseline_dialog),
-                           ("Learn from a recording…", self.baseline_from_recording_dialog)):
+        for text, slot in (("Learn voice again", self.recalibrate),
+                           ("Save this usual voice…", self.save_baseline_dialog),
+                           ("Load a saved one…", self.load_baseline_dialog),
+                           ("Learn it from a recording…", self.baseline_from_recording_dialog)):
             b = _button(text)
             b.clicked.connect(slot)
             row.addWidget(b)
@@ -1183,7 +1200,7 @@ class Dashboard(QMainWindow):
         form = QGridLayout()
         form.setHorizontalSpacing(10)
         form.setVerticalSpacing(8)
-        form.addWidget(_label("Live view and corner view show", "secondary"), 0, 0)
+        form.addWidget(_label("The display and the mini window show", "secondary"), 0, 0)
         self.live_seconds_spin = QSpinBox()
         self.live_seconds_spin.setMaximumWidth(140)
         self.live_seconds_spin.setRange(5, 30)
@@ -1201,11 +1218,16 @@ class Dashboard(QMainWindow):
         form.addWidget(self.strip_seconds_spin, 1, 1, Qt.AlignmentFlag.AlignLeft)
         form.setColumnStretch(1, 1)
         disp.add_layout(form)
-        self.side_panel_check = QCheckBox("Show the key and marks beside the live view (H)")
+        self.side_panel_check = QCheckBox("Show the key beside the display (H)")
         self.side_panel_check.setChecked(self.panel_button.isChecked())
         self.side_panel_check.toggled.connect(self.set_side_panel)
         disp.add(self.side_panel_check)
-        self.setup_numbers_check = QCheckBox("Show numbers in Review and Compare (the live views "
+        self.details_check = QCheckBox("Also show each signal on its own row, and the whole "
+                                       "session, under the display")
+        self.details_check.setChecked(self.details_action.isChecked())
+        self.details_check.toggled.connect(self.set_details)
+        disp.add(self.details_check)
+        self.setup_numbers_check = QCheckBox("Show numbers in Look back and Compare (the live views "
                                              "never show numbers)")
         self.setup_numbers_check.toggled.connect(self.set_show_numbers)
         disp.add(self.setup_numbers_check)
@@ -1230,9 +1252,9 @@ class Dashboard(QMainWindow):
         key_grid = QGridLayout()
         key_grid.setHorizontalSpacing(14)
         key_grid.setVerticalSpacing(4)
-        pairs = (("Space", "freeze or unfreeze"), ("M", "mark this moment"),
+        pairs = (("Space", "pause the picture, or go live again"), ("M", "mark this moment"),
                  ("N", "mark it and type a note"), ("H", "show or hide the key"),
-                 ("F11", "full screen"), ("F1", "How it works"),
+                 ("F11", "full screen"), ("F1", "Help"),
                  ("Ctrl+1 … Ctrl+5", "go to a tab"), ("Ctrl+S / Ctrl+O", "save / open a session"))
         for k, (key, what) in enumerate(pairs):
             key_grid.addWidget(_label(key, "cardTitle"), k // 2, (k % 2) * 2)
@@ -1240,7 +1262,7 @@ class Dashboard(QMainWindow):
         key_grid.setColumnStretch(1, 1)
         key_grid.setColumnStretch(3, 1)
         keys.add_layout(key_grid)
-        keys.add(_label("In the corner view: Space freeze, M mark, R recalibrate, T keep on top, "
+        keys.add(_label("In the mini window: Space pause, M mark, R learn voice again, T keep on top, "
                         "H key, Esc hide.", "cardHint", wrap=True))
         grid.addWidget(keys, 2, 0, 1, 2)
         grid.setColumnStretch(0, 1)
@@ -1331,7 +1353,7 @@ class Dashboard(QMainWindow):
     def stop_listening(self) -> None:
         note = self.engine.stop()
         self._set_start_checked(False)
-        self.statusBar().showMessage(note or "Stopped. Everything so far is kept for Review.")
+        self.statusBar().showMessage(note or "Stopped. Everything so far is kept: see Look back.")
         self._update_chips()
 
     def _attach_views(self) -> None:
@@ -1422,15 +1444,15 @@ class Dashboard(QMainWindow):
 
     def new_session_clicked(self) -> None:
         if self.prepare_fresh_session("start a new session", clear_baseline=False):
-            self.statusBar().showMessage("New session. The baseline is kept; press Recalibrate "
+            self.statusBar().showMessage("New session. Their usual voice is kept; press Learn voice again "
                                          "for a different speaker.")
 
     def recalibrate(self) -> None:
         self.engine.recalibrate()
         self._refresh_baseline_text()
         self._update_chips()
-        self.statusBar().showMessage("Recalibrating: the next 15 seconds or so of speech set the "
-                                     "new baseline.")
+        self.statusBar().showMessage("Learning the voice again: keep the person talking for "
+                                     "about 20 seconds.")
 
     def add_mark(self):
         now = self.engine.now()
@@ -1439,7 +1461,7 @@ class Dashboard(QMainWindow):
             return None
         marker = self.engine.session.add_marker(now)
         self.statusBar().showMessage(f"Marked {clock(now)}. Press N to mark and type a note; "
-                                     "notes can also be added in Review.")
+                                     "notes can also be added in Look back.")
         self._refresh_review(force=True)
         return marker
 
@@ -1449,6 +1471,7 @@ class Dashboard(QMainWindow):
             return
         if self.side_panel.isHidden():
             self.set_side_panel(True)
+        self._refresh_live_marks()
         self._focus_note(marker)
 
     def _focus_note(self, marker=None) -> None:
@@ -1514,6 +1537,16 @@ class Dashboard(QMainWindow):
                 control.blockSignals(False)
         self.prefs.set("side_panel", bool(on))
 
+    def set_details(self, on: bool) -> None:
+        """Each signal on its own row and the whole-session strip, under the display."""
+        self.details.setVisible(bool(on))
+        for control in (getattr(self, "details_action", None), getattr(self, "details_check", None)):
+            if control is not None and control.isChecked() != bool(on):
+                control.blockSignals(True)
+                control.setChecked(bool(on))
+                control.blockSignals(False)
+        self.prefs.set("show_details", bool(on))
+
     def toggle_side_panel(self) -> None:
         if self.tabs.currentIndex() == LIVE:
             self.set_side_panel(self.side_panel.isHidden())
@@ -1571,7 +1604,7 @@ class Dashboard(QMainWindow):
                 self.live_view.source_finished = True
                 if self._demo_session:
                     self.statusBar().showMessage("The demo has finished. Look back over it in "
-                                                 "Review, or press Start listening to try your "
+                                                 "Look back, or press Start listening to try your "
                                                  "own voice.")
         status = engine.status()
         idle = not engine.running and engine.session.frame_count == 0
@@ -1591,7 +1624,7 @@ class Dashboard(QMainWindow):
         if visible_live:
             if self._tick_count % (2 if busy else 30) == 0:
                 self.live_view.update()
-            if self._tick_count % (6 if busy else 30) == 0:
+            if self._tick_count % (6 if busy else 30) == 0 and not self.details.isHidden():
                 self.strip.update()
         if self.corner is not None and self.corner.isVisible():
             self.corner.status_message = status
@@ -1617,28 +1650,41 @@ class Dashboard(QMainWindow):
         if self.engine.session.baseline is not None and self._baseline_shown is not self.engine.session.baseline:
             self._refresh_baseline_text()
         self._update_chips()
-        if self.tabs.currentIndex() == LIVE:
+        if self.tabs.currentIndex() == LIVE and not self.details.isHidden():
             self.live_map.update()
 
     def _update_chips(self) -> None:
+        """The status beside the tabs (listening or not, the session clock) and the three steps
+        above the display: start, learn their usual voice, watch for changes."""
         engine = self.engine
-        items = []
+        ref = engine.reference
         if engine.running and engine.source is not None:
             name = engine.source.name
             name = name if len(name) <= 30 else name[:29] + "…"
-            items.append(("on", ("Playing: " if engine.is_file else "Listening: ") + name))
+            status = [("on", ("Playing " if engine.is_file else "Listening: ") + name)]
         else:
-            items.append(("off", "Not listening"))
-        ref = engine.reference
-        if ref.calibrated:
-            items.append(("check", "Knows this voice" if engine.running else "Baseline ready"))
-        elif engine.running:
-            items.append((f"ring:{ref.progress:.2f}", f"Learning this voice {ref.progress * 100:.0f}%"))
-        else:
-            items.append(("off", "No baseline yet"))
+            status = [("off", "Not listening")]
         if engine.session.frame_count:
-            items.append(("", f"Session {clock(engine.session.end_time)}"))
-        self.chips.set_items(items)
+            status.append(("", f"Session {clock(engine.session.end_time)}"))
+        self.chips.set_items(status)
+
+        if ref.calibrated:
+            learn = ("check", "2  Knows their usual voice")
+        elif engine.running:
+            learn = (f"ring:{ref.progress:.2f}",
+                     f"2  Learning their usual voice… {ref.progress * 100:.0f}%")
+        else:
+            learn = ("off", "2  Learn their usual voice")
+        steps = [("check" if engine.running or engine.session.frame_count else "off",
+                  "1  Start listening"),
+                 learn,
+                 ("on" if engine.running and ref.calibrated else "off",
+                  "3  Watch how their voice changes")]
+        if engine.running:
+            current = 2 if ref.calibrated else 1
+        else:
+            current = 0 if not engine.session.frame_count else -1
+        self.steps.set_items(steps, highlight=current)
 
     def _report_delay(self) -> None:
         lat = self.live_view.latencies
@@ -1741,6 +1787,7 @@ class Dashboard(QMainWindow):
             return
         self._live_marks_key = key
         self.live_marks.clear()
+        self.marks_card.setVisible(bool(markers))
         for k, m in enumerate(markers):
             item = QListWidgetItem(f"{clock(m.t)}   {m.note or '(no note: double-click to add one)'}")
             item.setData(Qt.ItemDataRole.UserRole, k)

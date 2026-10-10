@@ -1,5 +1,7 @@
 # Filming plan: the Stage 1 video (about 5 minutes)
 
+> **Replaced on 10 Oct 2026.** The video is now a walk-and-talk around school, presented by the team. The current script, shot list and filming notes are in the shared doc *Tone Visualiser: Stage 1 video script* (the link is in the team WhatsApp group). This file is kept for its background: the tests with people, consent and editing notes still apply.
+
 **Deadlines.** Our own milestone: the demo filmed by **Mon 5 Oct**. Stage 1 video due **Fri 23 Oct**
 (aim to submit by Wed 21 Oct).
 

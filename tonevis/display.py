@@ -35,11 +35,11 @@ HELP_LINES = (
     "Faint band: this speaker's usual pitch range.",
     "Thickness and brightness: loudness.",
     "Colour: amber = more pressed, blue = softer or breathier.",
-    "Grey line: still calibrating on this speaker.",
+    "Grey line: still learning this speaker's usual voice.",
     "Gaps: pauses. Shaded = 1 s or longer; darker = longer.",
     "Ticks along the bottom: syllables.",
     "Right-hand bar: pace. Up = faster than usual.",
-    "Space freeze   R recalibrate   T on top   H help   Q quit",
+    "Space pause   R learn voice again   T on top   H help   Q quit",
 )
 
 
@@ -55,6 +55,22 @@ def _runs(indices: np.ndarray, t: np.ndarray) -> list[np.ndarray]:
     breaks = np.flatnonzero((np.diff(indices) != 1)
                             | (np.diff(t[indices]) > 1.5 * C.FRAME_STEP)) + 1
     return np.split(indices, breaks)
+
+
+def _smooth_runs(y: np.ndarray, runs: list[np.ndarray]) -> np.ndarray:
+    """Averages the line over about C.LINE_SMOOTHING seconds (a triangular window) inside each
+    voiced run, never across a gap, so it reads as a smooth curve."""
+    full = max(1, int(round(C.LINE_SMOOTHING / C.FRAME_STEP / 2)))
+    ys = y.copy()
+    for run in runs:
+        half = min(full, (run.size - 1) // 2)       # a short run gets a shorter window
+        if half >= 1:
+            kernel = np.concatenate([np.arange(1, half + 2),
+                                     np.arange(half, 0, -1)]).astype(np.float64)
+            values = y[run]
+            weights = np.convolve(np.ones_like(values), kernel, mode="same")
+            ys[run] = np.convolve(values, kernel, mode="same") / weights
+    return ys
 
 
 def tension_value(delta_db) -> np.ndarray:
@@ -90,7 +106,10 @@ class ToneView(QWidget):
         self.now_fn = lambda: None
         self.frozen_at: float | None = None
         self.show_help = False
-        self.show_calibrating = True     # the "calibrating..." ring, while there is no baseline
+        self.show_calibrating = True     # the "learning this voice" ring, until it is learned
+        self.learning_banner = False     # also a big "keep talking" banner (the main view only)
+        self.axis_words = False          # "higher" / "lower" beside the middle line (main view)
+        self.cap_scale = False           # big views: at most C.MAX_PX_PER_SEMITONE per semitone
         self.glow = True                 # soft glow behind the line
         self.help_lines = HELP_LINES
         self.source_finished = False     # a finished file: its trailing silence is not a pause
@@ -133,6 +152,8 @@ class ToneView(QWidget):
     def y_for(self, st, plot: QRectF):
         """Semitones from the speaker's middle -> screen y (up = higher)."""
         half = plot.height() / 2.0 - C.RIBBON_WIDTH[1] / 2.0 - 1.0
+        if self.cap_scale:
+            half = min(half, C.MAX_PX_PER_SEMITONE * C.SEMITONE_RANGE)
         return plot.center().y() - np.asarray(st) / C.SEMITONE_RANGE * half
 
     def x_for(self, t, now: float, plot: QRectF):
@@ -163,6 +184,8 @@ class ToneView(QWidget):
             painter.setPen(QPen(QColor(C.CENTRE_LINE), 1.0))
             cy = r.plot.center().y()
             painter.drawLine(QPointF(r.plot.left(), cy), QPointF(r.plot.right(), cy))
+            if self.axis_words:
+                self._draw_axis_words(painter, r.plot)
             if now is not None:
                 if ref.pitch_hz:
                     self._draw_line(painter, r.plot, now, ref)
@@ -247,10 +270,7 @@ class ToneView(QWidget):
 
         runs = [run for run in _runs(np.flatnonzero(in_range), t)
                 if run.size >= C.MIN_VOICED_FRAMES]
-        ys = y.copy()                      # light 1-2-1 smoothing inside each run
-        for run in runs:
-            if run.size >= 3:
-                ys[run[1:-1]] = (y[run[:-2]] + 2.0 * y[run[1:-1]] + y[run[2:]]) / 4.0
+        ys = _smooth_runs(y, runs)
 
         painter.save()
         # Clip to the plot, but let the "now" dot at the right edge show whole (it would
@@ -269,7 +289,7 @@ class ToneView(QWidget):
         # pauses show as gaps.
         for a, b in zip(runs, runs[1:]):
             if t[b[0]] - t[a[-1]] <= C.BRIDGE_MAX + 1e-6:
-                colour = self._bg_rgb + ((rgb[a[-1]] + rgb[b[0]]) / 2 - self._bg_rgb) * 0.6
+                colour = self._bg_rgb + ((rgb[a[-1]] + rgb[b[0]]) / 2 - self._bg_rgb) * 0.8
                 painter.setPen(self._pen(colour, C.BRIDGE_WIDTH))
                 painter.drawLine(QPointF(x[a[-1]], ys[a[-1]]), QPointF(x[b[0]], ys[b[0]]))
         # The line itself, in short pieces (80 ms) so thickness and colour can change along it.
@@ -284,7 +304,11 @@ class ToneView(QWidget):
         painter.setPen(self._pen(_rgb(C.OFF_SCALE_MARK), 2.0))
         for run in _runs(np.flatnonzero(voiced & ~in_range), t):
             if run.size >= C.MIN_VOICED_FRAMES:
-                edge = plot.top() + 1.0 if st0[run[0]] > 0 else plot.bottom() - 1.0
+                up = st0[run[0]] > 0
+                if self.cap_scale:              # the scale's own edge, inside a tall plot
+                    edge = float(self.y_for(C.SEMITONE_RANGE if up else -C.SEMITONE_RANGE, plot))
+                else:
+                    edge = plot.top() + 1.0 if up else plot.bottom() - 1.0
                 painter.drawLine(QPointF(float(x[run[0]]), edge),
                                  QPointF(float(x[run[-1]]), edge))
         # The newest voiced sound: a glowing dot.
@@ -366,7 +390,10 @@ class ToneView(QWidget):
                              Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, self.label)
             painter.setFont(self.font())
         elif not ref.calibrated and self.show_calibrating:
-            self._draw_calibrating(painter, corner, ref.progress)
+            if self.learning_banner:            # the big banner says it all on the main view
+                self._draw_learning_banner(painter, r.plot, ref.progress)
+            else:
+                self._draw_calibrating(painter, corner, ref.progress)
         if self.frozen_at is not None:          # "paused" sign: two bars, top right
             painter.setPen(Qt.PenStyle.NoPen)
             painter.setBrush(QColor(C.NEUTRAL))
@@ -399,7 +426,60 @@ class ToneView(QWidget):
         painter.setPen(QColor(C.DIM_TEXT))
         painter.drawText(QRectF(ring.right() + 6.0, corner.y(), 200.0, 16.0),
                          Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                         "calibrating…")
+                         "learning this voice…")
+
+    def _draw_learning_banner(self, painter: QPainter, plot: QRectF, progress: float) -> None:
+        """While the voice is being learned: what is happening and what to do, big enough to
+        read across a room, with a bar that fills as it learns."""
+        font = QFont(self.font())
+        if font.pointSizeF() > 0:
+            font.setPointSizeF(font.pointSizeF() * 1.35)
+        fm = QFontMetricsF(font)
+        lines = ("Learning their usual voice: keep talking normally",
+                 "The line is grey until it knows them, then turns white")
+        w = min(plot.width() - 24.0, max(fm.horizontalAdvance(s) for s in lines) + 48.0)
+        h = fm.height() * 2 + 34.0
+        box = QRectF(plot.center().x() - w / 2.0, plot.top() + 10.0, w, h)
+        painter.save()
+        painter.setPen(QPen(QColor(C.CENTRE_LINE), 1.0))
+        painter.setBrush(QColor(8, 10, 14, 215))
+        painter.drawRoundedRect(box, 8.0, 8.0)
+        painter.setFont(font)
+        painter.setPen(QColor(C.NEUTRAL))
+        painter.drawText(QRectF(box.left(), box.top() + 8.0, w, fm.height()),
+                         Qt.AlignmentFlag.AlignCenter, fm.elidedText(lines[0], Qt.TextElideMode.ElideRight, w - 24.0))
+        painter.setFont(self.font())
+        painter.setPen(QColor(C.DIM_TEXT))
+        painter.drawText(QRectF(box.left(), box.top() + 8.0 + fm.height(), w, fm.height()),
+                         Qt.AlignmentFlag.AlignCenter,
+                         QFontMetricsF(self.font()).elidedText(lines[1], Qt.TextElideMode.ElideRight, w - 24.0))
+        bar = QRectF(box.left() + 24.0, box.bottom() - 12.0, w - 48.0, 4.0)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor(C.PACE_TRACK))
+        painter.drawRoundedRect(bar, 2.0, 2.0)
+        painter.setBrush(QColor(C.CALIBRATING_LINE))
+        painter.drawRoundedRect(QRectF(bar.left(), bar.top(),
+                                       bar.width() * max(0.02, min(1.0, progress)), bar.height()),
+                                2.0, 2.0)
+        painter.restore()
+
+    def _draw_axis_words(self, painter: QPainter, plot: QRectF) -> None:
+        """'higher' above the middle line and 'lower' below it, at the faded left edge, so a
+        first-time viewer can read the height without the key. The middle line is their usual."""
+        if plot.height() < 160:
+            return
+        painter.save()
+        font = QFont(self.font())
+        if font.pointSizeF() > 0:
+            font.setPointSizeF(font.pointSizeF() * 0.9)
+        painter.setFont(font)
+        painter.setPen(QColor(C.DIM_TEXT))
+        fm = QFontMetricsF(font)
+        cy = plot.center().y()
+        x = plot.left() + 6.0
+        painter.drawText(QPointF(x, cy - 6.0), "↑ higher than usual")
+        painter.drawText(QPointF(x, cy + 6.0 + fm.ascent()), "↓ lower than usual")
+        painter.restore()
 
     def help_rect(self) -> QRectF:
         fm = QFontMetricsF(self.font())
@@ -615,7 +695,7 @@ class ToneWindow(ToneView):
                     self._measured_up_to = now
         elif key == Qt.Key.Key_R:
             self.worker.request_recalibration()
-            print("Recalibrating: the next 15 s or so of speech set the new baseline.", flush=True)
+            print("Learning the voice again: the next 15 s or so of speech set their usual voice.", flush=True)
         elif key == Qt.Key.Key_H:
             self.show_help = not self.show_help
             self.update()
